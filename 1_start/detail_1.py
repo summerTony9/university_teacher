@@ -4,6 +4,10 @@ from bs4 import BeautifulSoup
 import re
 import openpyxl
 
+# 首先得到全部的链接，然后再进行处理，考虑两个部分，基本信息和其他信息
+# 比较方便的地方是信息很规整，主要运用了exreact_info
+# 存在的可能的问题是，如果不存在字典可能报错，建议写成 get
+# extract_body_info.get(targets[i]
 
 def extract_info(infos):
     ret = {}
@@ -62,6 +66,7 @@ for index in (range(len(teacher_info))):
             '职称': [teacher_info['级别'][index]],
             '称号': [title],
             '机构': [organization],
+            # 都可以考虑改成get('电话'),但是反正跑完了，下次记得就好了，这次懒得改了
             '电话': [detail_dict['电话']],
             '邮箱': [detail_dict['E-mail']],
             '教育背景': [main_details['教育背景']],
