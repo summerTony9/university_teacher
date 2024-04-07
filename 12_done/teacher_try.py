@@ -10,7 +10,7 @@ def tidy_text(text, text_name):
     if text_name != '邮箱':
         return text.replace(" ", "").replace(text_name, "").replace("名称", "")
     else:
-        return text.replace(" ", "").replace(text_name, "").replace("名称", "")[::-1]
+        return text.replace(" ", "").replace(text_name, "").replace("名称", "")[::-1] # 反转顺序
 
 
 def extract_info(infos):
@@ -92,6 +92,7 @@ for index in range(len(teacher_info_pd)):
             '邮箱': [addr_info['邮箱']],
             '地址': [addr_info['地址']]
         }))
+        # 针对不同地sheet，生成不同的list?大概是这个思路
         for i in range(len(targets)):
             dfs_list[i].append(pd.DataFrame({
                 '姓名': [name],
