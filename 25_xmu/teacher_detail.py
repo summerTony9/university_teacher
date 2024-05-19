@@ -75,7 +75,7 @@ for index in range(len(df)):
             if br_tags:
                 last_br = br_tags[-1]
                 content_after_last_br = []
-                current_element = find_topmost_parent(last_br).next_sibling
+                current_element = find_topmost_parent(last_br, 'p').next_sibling
                 while current_element:
                     if not isinstance(current_element, str) or current_element.strip():
                         content_after_last_br.append(current_element)
