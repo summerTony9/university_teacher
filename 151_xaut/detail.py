@@ -6,5 +6,3 @@ from fake_useragent import UserAgent
 import pandas as pd
 
 df = pd.read_csv('teacher_info.csv')
-
-url =
