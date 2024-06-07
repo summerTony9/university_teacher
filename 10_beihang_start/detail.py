@@ -12,7 +12,7 @@ def extract_address(addrs):
         if i == 0:
             addr_info['title'] = addrs[i].get_text()
         else:
-            targets = ['出生年月','办公电话','办公地址','邮箱']
+            targets = ['出生年月', '办公电话', '办公地址', '邮箱']
             addr = addrs[i].get_text()
             for target in targets:
                 if target in addr:
