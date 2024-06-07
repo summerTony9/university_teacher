@@ -25,4 +25,5 @@ for info in infos:
         dict_list['url'].append(url)
 
 df = pd.DataFrame(dict_list)
+df.drop_duplicates()
 df.to_csv('teacher_info.csv', index=False, encoding='utf-8-sig')
