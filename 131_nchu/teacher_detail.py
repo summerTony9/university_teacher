@@ -13,10 +13,8 @@ df = pd.read_csv('teacher_info.csv')
 df = df.drop_duplicates(subset=['姓名'], ignore_index=True)
 print(df)
 
-for i in range(len(df)):
-    url = df['url'][i]
-    print(url)
-    # url = "http://dscx.yjs.nchu.edu.cn/homepage/288.html"
+
+def get_info(url):
     html = requests.get(url, headers={'User-Agent': UserAgent().random}).content
     bs0bj = BeautifulSoup(html, features='html.parser')
 
@@ -41,19 +39,16 @@ for i in range(len(df)):
 
     for capition in capitions:
         # Print the capition text
-        print(capition.get_text(strip=True))
+        # print(capition.get_text(strip=True))
         key = capition.get_text(strip=True)
-        info_list = []
         # Find the next sibling element which is supposed to be the corresponding content
         next_element = capition.find_next_sibling()
         value = ''
         while next_element and next_element.get('class') != ['js-capition']:
-            print(next_element.get_text(strip=True))
+            # print(next_element.get_text(strip=True))
             value += next_element.get_text(strip=True)
             next_element = next_element.find_next_sibling()
-        print(key, value)
         if key == '基本信息':
-            print(value)
             extracted_info = {field: re.search(pattern, value, re.S).group(1).strip() for field, pattern in
                               patterns.items()
                               if re.search(pattern, value, re.S)}
@@ -62,6 +57,20 @@ for i in range(len(df)):
             info_dict.update(extracted_info)
         else:
             info_dict[key] = value
+
+    return info_dict
+
+
+for i in range(len(df)):
+    url = df['url'][i]
+    print(url)
+    # url = "http://dscx.yjs.nchu.edu.cn/homepage/288.html"
+    info_dict = get_info(url)
+    max_try = 5
+    i = 0
+    while info_dict == {} and i < max_try:
+        info_dict = get_info(url)
+        i += 1
     info_dict['url'] = url
     info_dict['姓名'] = df['姓名'][i]
     dict_list.append(info_dict)
@@ -93,4 +102,4 @@ for col in result_df.columns:
     if not_missing <= 3:
         result_df.drop(columns=col, inplace=True)
 
-result_df.to_csv('teacher_detail.csv', index=False, encoding='utf-8-sig')
+result_df.to_csv('teacher_detail2.csv', index=False, encoding='utf-8-sig')
