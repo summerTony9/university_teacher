@@ -25,97 +25,46 @@ print(df.head())
 dict_list = []
 
 
-def extract_info_from_html(html_content):
-    soup = BeautifulSoup(html_content, 'html.parser')
-    info = {}
+def get_info(url):
+    html = requests.get(url, headers={'User-Agent': UserAgent().random}, verify=False).content
+    bs0bj = BeautifulSoup(html, features='html.parser')
 
-    try:
-        # 提取姓名、职称和导师信息
-        name_tag = soup.find('p', class_='vsbcontent_start').find_next_sibling('p')
-        if name_tag:
-            info['name'] = name_tag.get_text(strip=True).split(' ')[0]
-            info['current_title'] = name_tag.get_text(strip=True).split(' ')[-1]
-        else:
-            info['name'] = 'N/A'
-            info['current_title'] = 'N/A'
+    capitions = bs0bj.find_all('h4')
 
-        # 提取基本信息
-        basic_info_tag = soup.find('h4', text='基本信息').find_next_sibling('p')
-        if basic_info_tag:
-            basic_info_text = basic_info_tag.get_text(strip=True).split('||')
-            for item in basic_info_text:
-                if '性别' in item:
-                    info['gender'] = item.split('：')[1].strip()
-                if '出生年月' in item:
-                    info['birthdate'] = item.split('：')[1].strip()
-                if '政治面貌' in item:
-                    info['political_status'] = item.split('：')[1].strip()
-                if '现任职称' in item:
-                    info['current_position'] = item.split('：')[1].strip()
-        else:
-            info.update({'gender': 'N/A', 'birthdate': 'N/A', 'political_status': 'N/A', 'current_position': 'N/A'})
+    info_dict = {}
 
-        # 提取最后学历、最后学位、获学位单位信息
-        education_info_tag = basic_info_tag.find_next_sibling('p') if basic_info_tag else None
-        if education_info_tag:
-            education_info_text = education_info_tag.get_text(strip=True).split('||')
-            for item in education_info_text:
-                if '最后学历' in item:
-                    info['highest_education'] = item.split('：')[1].strip()
-                if '最后学位' in item:
-                    info['highest_degree'] = item.split('：')[1].strip()
-                if '获学位单位' in item:
-                    info['degree_granting_institution'] = item.split('：')[1].strip()
-        else:
-            info.update({'highest_education': 'N/A', 'highest_degree': 'N/A', 'degree_granting_institution': 'N/A'})
 
-        # 提取留学信息
-        study_abroad_info_tag = education_info_tag.find_next_sibling('p') if education_info_tag else None
-        if study_abroad_info_tag:
-            study_abroad_info_text = study_abroad_info_tag.get_text(strip=True).split('||')
-            for item in study_abroad_info_text:
-                if '是否留学' in item:
-                    info['study_abroad'] = item.split('：')[1].strip()
-                if '留学国别' in item:
-                    info['country_of_study'] = item.split('：')[1].strip()
-                if '留学时间' in item:
-                    info['study_period'] = item.split('：')[1].strip()
-        else:
-            info.update({'study_abroad': 'N/A', 'country_of_study': 'N/A', 'study_period': 'N/A'})
+    # Extract information using the defined patterns
 
-        # 提取联系方式信息
-        contact_info_tag = study_abroad_info_tag.find_next_sibling('p') if study_abroad_info_tag else None
-        if contact_info_tag:
-            contact_info_text = contact_info_tag.get_text(strip=True).split('||')
-            for item in contact_info_text:
-                if '邮箱' in item:
-                    info['email'] = item.split('：')[1].strip()
-                if '通讯地址' in item:
-                    info['address'] = item.split('：')[1].strip()
-        else:
-            info.update({'email': 'N/A', 'address': 'N/A'})
+    for capition in capitions:
+        # Print the capition text
+        # print(capition.get_text(strip=True))
+        key = capition.get_text(strip=True)
+        # Find the next sibling element which is supposed to be the corresponding content
+        next_element = capition.find_next_sibling()
+        value = ''
+        while next_element and next_element.name != 'h4':
+            # print(next_element.get_text(strip=True))
+            value += next_element.get_text(strip=True).replace('\xa0', '')
+            next_element = next_element.find_next_sibling()
 
-        # 提取所有有标题的信息
-        titles = soup.find_all(['h4', 'p'])
-        for title in titles:
-            title_text = title.get_text(strip=True)
-            if title_text in ["基本信息", "导师信息", "所属院系、学科及研究方向", "工作简历", "承担教学任务",
-                              "承担的科研项目情况", "论文目录", "科研成果"]:
-                content_list = []
-                sibling = title.find_next_sibling()
-                while sibling and sibling.name in ['p', 'div']:
-                    if sibling.name == 'p':
-                        content_list.append(sibling.get_text(strip=True))
-                    sibling = sibling.find_next_sibling()
+        if key == '基本信息':
+            parts = value.split('||')
 
-                if content_list:
-                    info[title_text] = " ".join(content_list)
-                else:
-                    info[title_text] = 'N/A'
-    except Exception as e:
-        print(f"Error extracting info: {e}")
+            # Create an empty dictionary to store the extracted information
+            # Loop through each part and extract key-value pairs
+            for part in parts:
+                # Remove any leading/trailing whitespace
+                part = part.strip()
+                if '：' in part:
+                    # Split the part into key and value based on '：'
+                    key, value = part.split('：', 1)
+                    # Add the key-value pair to the dictionary
+                    info_dict[key] = value
 
-    return info
+        info_dict[key] = value
+
+    return info_dict
 
 for index in range(len(df)):
     print(index)
@@ -127,7 +76,7 @@ for index in range(len(df)):
     # Extract information
     # try:
     html = requests.get(teacher_url, headers={'User-Agent': UserAgent().random}, verify=False).content
-    teacher_info = extract_info_from_html(html)
+    teacher_info = get_info(teacher_url)
     # except:
     #     teacher_info = {}
 
